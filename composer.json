@@ -1,0 +1,24 @@
+{
+    "name": "dmregister/Zf2Resque",
+    "description": "Creates a ZF2 module and wraps the php-resque project into a service that can interact with the service locator.",
+    "type": "library",
+    "keywords": [
+        "php-resque",
+        "queue",
+        "worker",
+        "job",
+        "redis",
+        "resque"
+    ],
+    "homepage": "http://davidmregister.com/",
+    "license": "BSD-3-Clause",
+    "require": {
+        "php": ">=5.3.3",
+        "chrisboulton/php-resque": "dev-master"
+    },
+    "autoload": {
+        "psr-0": {
+            "Zf2Resque\\": "src/"
+        }
+    }        
+}
