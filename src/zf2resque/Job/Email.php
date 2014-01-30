@@ -1,6 +1,6 @@
 <?php
 
-namespace WorkerQueue\Job;
+namespace Zf2Resque\Job;
 
 
 class Email

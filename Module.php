@@ -1,6 +1,6 @@
 <?php
 
-namespace WorkerQueue;
+namespace Zf2Resque;
 
 class Module
 {

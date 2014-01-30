@@ -9,7 +9,7 @@ return array(
 	                'options' => array(
 	                    'route'    => 'start resque',
 	                    'defaults' => array(
-	                        'controller' => 'WorkerQueue\Controller\Cli',
+	                        'controller' => 'Zf2Resque\Controller\Cli',
 	                        'action'     => 'start',
 	                    ),
 	                ),
@@ -19,7 +19,7 @@ return array(
     ),
     'controllers' => array(
         'invokables' => array(
-            'WorkerQueue\Controller\Cli' => 'WorkerQueue\Controller\CliController'
+            'Zf2Resque\Controller\Cli' => 'Zf2Resque\Controller\CliController'
         ),
     )
 );
