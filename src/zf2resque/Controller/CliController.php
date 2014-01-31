@@ -17,12 +17,8 @@ class CliController extends AbstractActionController {
 
     public function startAction() {
 
-        $QUEUE = 'emails';
-        if (empty($QUEUE)) {
-            die("Set QUEUE env var containing the list of queues to work.\n");
-        }
-
-        $REDIS_BACKEND = '10.208.141.103:6379';
+        
+        $REDIS_BACKEND = '127.0.0.1:6379';
         $REDIS_BACKEND_DB = getenv('REDIS_BACKEND_DB');
         if (!empty($REDIS_BACKEND)) {
             if (empty($REDIS_BACKEND_DB))
@@ -85,8 +81,7 @@ class CliController extends AbstractActionController {
                 }
                 // Child, start the worker
                 else if (!$pid) {
-                    $queues = explode(',', $QUEUE);
-                    $worker = new Resque_Worker($queues);
+                    $worker = $this->getServiceLocator()->get('Zf2Resque\Service\ResqueWorker');
                     $worker->setLogger($logger);
                     $logger->log(Psr\Log\LogLevel::NOTICE, 'Starting worker {worker}', array('worker' => $worker));
                     $worker->work($interval, $BLOCKING);
@@ -96,8 +91,8 @@ class CliController extends AbstractActionController {
         }
         // Start a single worker
         else {
-            $queues = explode(',', $QUEUE);
-            $worker = new \Resque_Worker($queues, $this->getServiceLocator());
+            
+            $worker = $this->getServiceLocator()->get('Zf2Resque\Service\ResqueWorker');
             $worker->setLogger($logger);
 
             $PIDFILE = getenv('PIDFILE');
@@ -109,6 +104,27 @@ class CliController extends AbstractActionController {
             $logger->log(\Psr\Log\LogLevel::NOTICE, 'Starting worker {worker}', array('worker' => $worker));
             $worker->work($interval, $BLOCKING);
         }
+    }
+
+    public function addJobAction() {
+       
+        date_default_timezone_set('GMT');
+        \Resque::setBackend('127.0.0.1:6379');
+
+        $args = array(
+            'time' => time(),
+            'array' => array(
+                'test' => 'test',
+            ),
+        );
+
+        $jobId = \Resque::enqueue('email', '\Zf2Resque\Job\Email', $args, true);
+        echo "Queued job " . $jobId . "\n\n";
+        
+        $jobId = \Resque::enqueue('email', '\Zf2Resque\Job\AddListing', $args, true);
+        echo "Queued job " . $jobId . "\n\n";
+
+        return;
     }
 
 }

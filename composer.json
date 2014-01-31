@@ -1,5 +1,5 @@
 {
-    "name": "dmregister/Zf2Resque",
+    "name": "dmregister/zf2-resque",
     "description": "Creates a ZF2 module and wraps the php-resque project into a service that can interact with the service locator.",
     "type": "library",
     "keywords": [
@@ -19,6 +19,9 @@
     "autoload": {
         "psr-0": {
             "Zf2Resque\\": "src/"
-        }
+        },
+        "classmap": [
+            "./Module.php"
+        ]
     }        
 }

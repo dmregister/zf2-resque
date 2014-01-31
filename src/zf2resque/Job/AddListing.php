@@ -2,7 +2,7 @@
 
 namespace Zf2Resque\Job;
 
-class Email {
+class AddListing {
     
     public $serviceManager;
     
@@ -15,7 +15,7 @@ class Email {
 
         $config = $this->serviceManager->get('config');
 
-        fwrite(STDOUT, 'Start job! -> localVar');
+        fwrite(STDOUT, 'Start job! -> Add Listing');
         sleep(1);
         fwrite(STDOUT, '---- ' . $config['localVar'] . '----Job ended!' . PHP_EOL);
     }
