@@ -28,9 +28,8 @@ return array(
         ),
     ),
     'zf2resque' => array(
-        'queues' => array(
-            'email'
-        )
+        'queues' => array(),
+        'redisBackend' => '127.0.0.1:6379'
     ),
     'localVar' => 'working',
     'service_manager' => array(

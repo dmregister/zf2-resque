@@ -5,23 +5,28 @@ namespace Zf2Resque\Service;
 use Zend\ServiceManager\ServiceManager;
 use Zf2Resque\Service\ResqueJob;
 
-class ResqueWorker extends \Resque_Worker {
+class ResqueWorker extends \Resque_Worker
+{
 
     protected $serviceManager;
 
-    public function __construct($queues, $serviceManager = null) {
-        if ($serviceManager !== null) {
+    public function __construct($queues, $serviceManager = null)
+    {
+        if ($serviceManager !== null)
+        {
             $this->setServiceManager($serviceManager);
         }
 
         parent::__construct($queues);
     }
 
-    public function setServiceManager(ServiceManager $serviceManager) {
+    public function setServiceManager(ServiceManager $serviceManager)
+    {
         $this->serviceManager = $serviceManager;
     }
 
-    public function getServiceManager() {
+    public function getServiceManager()
+    {
         return $this->serviceManager;
     }
 
@@ -31,8 +36,10 @@ class ResqueWorker extends \Resque_Worker {
      * @param string $workerId The ID of the worker.
      * @return Resque_Worker Instance of the worker. False if the worker does not exist.
      */
-    public static function find($workerId) {
-        if (!self::exists($workerId) || false === strpos($workerId, ":")) {
+    public static function find($workerId)
+    {
+        if (!self::exists($workerId) || false === strpos($workerId, ":"))
+        {
             return false;
         }
 
@@ -48,24 +55,36 @@ class ResqueWorker extends \Resque_Worker {
      * @param  int             $timeout
      * @return object|boolean               Instance of Resque_Job if a job is found, false if not.
      */
-    public function reserve($blocking = false, $timeout = null) {
+    public function reserve($blocking = false, $timeout = null)
+    {
         $queues = $this->queues();
-        if (!is_array($queues)) {
+        if (!is_array($queues))
+        {
             return;
         }
 
-        if ($blocking === true) {
+        if ($blocking === true)
+        {
             $job = ResqueJob::reserveBlocking($queues, $timeout);
-            if ($job) {
-                $this->logger->log(\Psr\Log\LogLevel::INFO, 'Found job on {queue}', array('queue' => $job->queue));
+            if ($job)
+            {
+                $this->logger->log(\Psr\Log\LogLevel::INFO,
+                        'Found job on {queue}', array('queue' => $job->queue));
                 return $job;
             }
-        } else {
-            foreach ($queues as $queue) {
-                $this->logger->log(\Psr\Log\LogLevel::INFO, 'Checking {queue} for jobs', array('queue' => $queue));
+        }
+        else
+        {
+            foreach ($queues as $queue)
+            {
+                $this->logger->log(\Psr\Log\LogLevel::INFO,
+                        'Checking {queue} for jobs', array('queue' => $queue));
                 $job = ResqueJob::reserve($queue, $this->getServiceManager());
-                if ($job) {
-                    $this->logger->log(\Psr\Log\LogLevel::INFO, 'Found job on {queue}', array('queue' => $job->queue));
+                if ($job)
+                {
+                    $this->logger->log(\Psr\Log\LogLevel::INFO,
+                            'Found job on {queue}',
+                            array('queue' => $job->queue));
                     return $job;
                 }
             }
@@ -79,7 +98,8 @@ class ResqueWorker extends \Resque_Worker {
      *
      * @param object $job Resque_Job instance containing the job we're working on.
      */
-    public function workingOn(ResqueJob $job) {
+    public function workingOn(ResqueJob $job)
+    {
         $job->worker = $this;
         $this->currentJob = $job;
         $job->updateStatus(\Resque_Job_Status::STATUS_RUNNING);
@@ -87,7 +107,7 @@ class ResqueWorker extends \Resque_Worker {
             'queue' => $job->queue,
             'run_at' => strftime('%a %b %d %H:%M:%S %Z %Y'),
             'payload' => $job->payload
-                ));
+        ));
         \Resque::redis()->set('worker:' . $job->worker, $data);
     }
 

@@ -4,7 +4,8 @@ namespace Zf2Resque\Service;
 
 use Zend\ServiceManager\ServiceManager;
 
-class ResqueJob extends \Resque_Job {
+class ResqueJob extends \Resque_Job
+{
 
     protected $serviceManager;
 
@@ -13,22 +14,25 @@ class ResqueJob extends \Resque_Job {
      */
     protected $instance;
 
-    public function __construct($queue, $payload, $serviceManager = null) {
-        if ($serviceManager !== null) {
+    public function __construct($queue, $payload, $serviceManager = null)
+    {
+        if ($serviceManager !== null)
+        {
             $this->setServiceManager($serviceManager);
         }
 
         parent::__construct($queue, $payload);
     }
 
-    public function setServiceManager(ServiceManager $serviceManager) {
+    public function setServiceManager(ServiceManager $serviceManager)
+    {
         $this->serviceManager = $serviceManager;
     }
 
-    public function getServiceManager() {
+    public function getServiceManager()
+    {
         return $this->serviceManager;
     }
-    
 
     /**
      * Find the next available job from the specified queue and return an
@@ -37,9 +41,11 @@ class ResqueJob extends \Resque_Job {
      * @param string $queue The name of the queue to check for a job in.
      * @return null|object Null when there aren't any waiting jobs, instance of Resque_Job when a job was found.
      */
-    public static function reserve($queue, $sm) {
+    public static function reserve($queue, $sm)
+    {
         $payload = \Resque::pop($queue);
-        if (!is_array($payload)) {
+        if (!is_array($payload))
+        {
             return false;
         }
 
@@ -51,29 +57,29 @@ class ResqueJob extends \Resque_Job {
      *
      * @return object Instance of the object that this job belongs to.
      */
-    public function getInstance() {
-        if (!is_null($this->instance)) {
+    public function getInstance()
+    {
+        if (!is_null($this->instance))
+        {
             return $this->instance;
         }
 
-        if (!class_exists($this->payload['class'])) {
-            throw new \Resque_Exception(
-                    'Could not find job class ' . $this->payload['class'] . '.'
-            );
+
+        try
+        {
+            $this->instance = $this
+                    ->getServiceManager()
+                    ->get($this->payload['class']);
+
+            $this->instance = new $this->payload['class'];
+            $this->instance->job = $this;
+            $this->instance->args = $this->getArguments();
+            $this->instance->queue = $this->queue;
+        } catch (\Exception $e)
+        {
+            throw new \Resque_Exception($e->getMessage());
         }
 
-        if (!method_exists($this->payload['class'], 'perform')) {
-            throw new \Resque_Exception(
-                    'Job class ' . $this->payload['class'] . ' does not contain a perform method.'
-            );
-        }
-
-        $this->instance = new $this->payload['class'];
-        $this->instance->job = $this;
-        $this->instance->args = $this->getArguments();
-        $this->instance->queue = $this->queue;
-        $this->instance->serviceManager = $this->getServiceManager();
         return $this->instance;
     }
-
 }

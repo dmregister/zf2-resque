@@ -13,14 +13,15 @@ namespace Zf2Resque\Controller;
 use Zend\Mvc\Controller\AbstractActionController;
 use Zend\View\Model\ViewModel;
 
-class CliController extends AbstractActionController {
+class CliController extends AbstractActionController
+{
 
-    public function startAction() {
-
-        
+    public function startAction()
+    {
         $REDIS_BACKEND = '127.0.0.1:6379';
         $REDIS_BACKEND_DB = getenv('REDIS_BACKEND_DB');
-        if (!empty($REDIS_BACKEND)) {
+        if (!empty($REDIS_BACKEND))
+        {
             if (empty($REDIS_BACKEND_DB))
                 \Resque::setBackend($REDIS_BACKEND);
             else
@@ -30,84 +31,93 @@ class CliController extends AbstractActionController {
         $logLevel = false;
         $LOGGING = getenv('LOGGING');
         $VERBOSE = getenv('VERBOSE');
-        $VVERBOSE = 1;
-        if (!empty($LOGGING) || !empty($VERBOSE)) {
+        $VVERBOSE = getenv('VVERBOSE');
+        if (!empty($LOGGING) || !empty($VERBOSE))
+        {
             $logLevel = true;
-        } else if (!empty($VVERBOSE)) {
+        }
+        else if (!empty($VVERBOSE))
+        {
             $logLevel = true;
         }
 
-        $APP_INCLUDE = getenv('APP_INCLUDE');
-        if ($APP_INCLUDE) {
-            if (!file_exists($APP_INCLUDE)) {
-                die('APP_INCLUDE (' . $APP_INCLUDE . ") does not exist.\n");
-            }
-
-            require_once $APP_INCLUDE;
-        }
-
-        // See if the APP_INCLUDE containes a logger object,
-        // If none exists, fallback to internal logger
-        if (!isset($logger) || !is_object($logger)) {
-            $logger = new \Resque_Log($logLevel);
-        }
+        $logger = new \Resque_Log($logLevel);
 
         $BLOCKING = getenv('BLOCKING') !== FALSE;
 
         $interval = 5;
         $INTERVAL = getenv('INTERVAL');
-        if (!empty($INTERVAL)) {
+        if (!empty($INTERVAL))
+        {
             $interval = $INTERVAL;
         }
 
         $count = 1;
         $COUNT = getenv('COUNT');
-        if (!empty($COUNT) && $COUNT > 1) {
+        if (!empty($COUNT) && $COUNT > 1)
+        {
             $count = $COUNT;
         }
 
         $PREFIX = getenv('PREFIX');
-        if (!empty($PREFIX)) {
-            $logger->log(Psr\Log\LogLevel::INFO, 'Prefix set to {prefix}', array('prefix' => $PREFIX));
+        if (!empty($PREFIX))
+        {
+            $logger->log(Psr\Log\LogLevel::INFO, 'Prefix set to {prefix}',
+                    array('prefix' => $PREFIX));
             Resque_Redis::prefix($PREFIX);
         }
 
-        if ($count > 1) {
-            for ($i = 0; $i < $count; ++$i) {
+        if ($count > 1)
+        {
+            for ($i = 0; $i < $count; ++$i)
+            {
                 $pid = Resque::fork();
-                if ($pid == -1) {
-                    $logger->log(Psr\Log\LogLevel::EMERGENCY, 'Could not fork worker {count}', array('count' => $i));
+                if ($pid == -1)
+                {
+                    $logger->log(Psr\Log\LogLevel::EMERGENCY,
+                            'Could not fork worker {count}',
+                            array('count' => $i));
                     die();
                 }
                 // Child, start the worker
-                else if (!$pid) {
-                    $worker = $this->getServiceLocator()->get('Zf2Resque\Service\ResqueWorker');
+                else if (!$pid)
+                {
+                    $worker = $this
+                            ->getServiceLocator()
+                            ->get('Zf2Resque\Service\ResqueWorker');
                     $worker->setLogger($logger);
-                    $logger->log(Psr\Log\LogLevel::NOTICE, 'Starting worker {worker}', array('worker' => $worker));
+                    $logger->log(Psr\Log\LogLevel::NOTICE,
+                            'Starting worker {worker}',
+                            array('worker' => $worker));
                     $worker->work($interval, $BLOCKING);
                     break;
                 }
             }
         }
         // Start a single worker
-        else {
-            
-            $worker = $this->getServiceLocator()->get('Zf2Resque\Service\ResqueWorker');
+        else
+        {
+
+            $worker = $this
+                    ->getServiceLocator()
+                    ->get('Zf2Resque\Service\ResqueWorker');
             $worker->setLogger($logger);
 
             $PIDFILE = getenv('PIDFILE');
-            if ($PIDFILE) {
+            if ($PIDFILE)
+            {
                 file_put_contents($PIDFILE, getmypid()) or
                         die('Could not write PID information to ' . $PIDFILE);
             }
 
-            $logger->log(\Psr\Log\LogLevel::NOTICE, 'Starting worker {worker}', array('worker' => $worker));
+            $logger->log(\Psr\Log\LogLevel::NOTICE, 'Starting worker {worker}',
+                    array('worker' => $worker));
             $worker->work($interval, $BLOCKING);
         }
     }
 
-    public function addJobAction() {
-       
+    public function addJobAction()
+    {
         date_default_timezone_set('GMT');
         \Resque::setBackend('127.0.0.1:6379');
 
@@ -118,10 +128,11 @@ class CliController extends AbstractActionController {
             ),
         );
 
-        $jobId = \Resque::enqueue('email', '\Zf2Resque\Job\Email', $args, true);
+        $jobId = \Resque::enqueue('email', 'Zf2Resque\Job\Sample', $args, true);
         echo "Queued job " . $jobId . "\n\n";
-        
-        $jobId = \Resque::enqueue('email', '\Zf2Resque\Job\AddListing', $args, true);
+
+        $jobId = \Resque::enqueue('email', 'Zf2Resque\Job\Sample', $args,
+                        true);
         echo "Queued job " . $jobId . "\n\n";
 
         return;

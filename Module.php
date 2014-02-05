@@ -2,17 +2,21 @@
 
 namespace Zf2Resque;
 
-class Module {
+class Module
+{
 
-    public function onBootstrap(\Zend\Mvc\MvcEvent $e) {
+    public function onBootstrap(\Zend\Mvc\MvcEvent $e)
+    {
         
     }
 
-    public function getConfig() {
+    public function getConfig()
+    {
         return include __DIR__ . '/config/module.config.php';
     }
 
-    public function getAutoloaderConfig() {
+    public function getAutoloaderConfig()
+    {
         return array(
             'Zend\Loader\StandardAutoloader' => array(
                 'namespaces' => array(
@@ -22,16 +26,23 @@ class Module {
         );
     }
 
-    public function getServiceConfig() {
+    public function getServiceConfig()
+    {
         return array(
             'factories' => array(
-                'Zf2Resque\Service\ResqueWorker' => function ($sm) {
-                    
+                'Zf2Resque\Service\ResqueWorker' => function ($sm)
+                {
+
                     $config = $sm->get('config');
-            
+                    
+                    if(empty($config['zf2resque']['queues']))
+                    {
+                        die("Set a queue in your config file ['zf2resque']['queues'].".PHP_EOL);
+                    }
+
                     return new \Zf2Resque
-                        \Service
-                        \ResqueWorker($config['zf2resque']['queues'],$sm);
+                            \Service
+                            \ResqueWorker($config['zf2resque']['queues'], $sm);
                 }
             ),
         );
