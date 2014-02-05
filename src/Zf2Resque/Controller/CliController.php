@@ -18,7 +18,9 @@ class CliController extends AbstractActionController
 
     public function startAction()
     {
-        $REDIS_BACKEND = '127.0.0.1:6379';
+        $config = $this->getServiceLocator()->get('config');
+        
+        $REDIS_BACKEND = $config['zf2resque']['redisBackend'];
         $REDIS_BACKEND_DB = getenv('REDIS_BACKEND_DB');
         if (!empty($REDIS_BACKEND))
         {
