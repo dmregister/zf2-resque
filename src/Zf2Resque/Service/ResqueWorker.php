@@ -126,9 +126,9 @@ class ResqueWorker extends \Resque_Worker
         
         $config = $this->getServiceManager()->get('config');
         
-        if($config['zf2resqueue']['emailOnShutDown'] === true)
+        if($config['zf2resque']['emailOnShutDown'] === true)
         {
-            $emailSettings = $config['zf2resqueue']['emailNotification'];
+            $emailSettings = $config['zf2resque']['emailNotification'];
             
             // Initialize parameters
             $htmlBody = 'The worker queue has stopped.';
