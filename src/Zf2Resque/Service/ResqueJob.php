@@ -70,8 +70,6 @@ class ResqueJob extends \Resque_Job
             $this->instance = $this
                     ->getServiceManager()
                     ->get($this->payload['class']);
-
-            $this->instance = new $this->payload['class'];
             $this->instance->job = $this;
             $this->instance->args = $this->getArguments();
             $this->instance->queue = $this->queue;
