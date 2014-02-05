@@ -28,7 +28,6 @@ return array(
         ),
     ),
     'zf2resque' => array(
-        'queues' => array(),
         'redisBackend' => '127.0.0.1:6379',
         'emailOnShutDown' => false
     ),

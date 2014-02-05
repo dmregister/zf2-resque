@@ -32,17 +32,13 @@ class Module
             'factories' => array(
                 'Zf2Resque\Service\ResqueWorker' => function ($sm)
                 {
-
-                    $config = $sm->get('config');
-                    
-                    if(empty($config['zf2resque']['queues']))
-                    {
-                        die("Set a queue in your config file ['zf2resque']['queues'].".PHP_EOL);
+                    $QUEUE = getenv('QUEUE');
+                    if(empty($QUEUE)) {
+                        die("Set QUEUE env var containing the list of queues to work.\n");
                     }
+                    $queues = explode(',', $QUEUE);
 
-                    return new \Zf2Resque
-                            \Service
-                            \ResqueWorker($config['zf2resque']['queues'], $sm);
+                    return new \Zf2Resque\Service\ResqueWorker($queues, $sm);
                 }
             ),
         );
