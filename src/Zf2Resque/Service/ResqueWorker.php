@@ -4,6 +4,11 @@ namespace Zf2Resque\Service;
 
 use Zend\ServiceManager\ServiceManager;
 use Zf2Resque\Service\ResqueJob;
+use Zend\Mail;
+use Zend\Mail\Transport\Smtp as SmtpTransport;
+use Zend\Mail\Transport\SmtpOptions;
+use Zend\Mime\Message as MimeMessage;
+use Zend\Mime\Part as MimePart;
 
 class ResqueWorker extends \Resque_Worker
 {
@@ -111,4 +116,56 @@ class ResqueWorker extends \Resque_Worker
         \Resque::redis()->set('worker:' . $job->worker, $data);
     }
 
+    /**
+     * Schedule a worker for shutdown. Will finish processing the current job
+     * and when the timeout interval is reached, the worker will shut down.
+     */
+    public function shutdown()
+    {
+        parent::shutdown();
+        
+        $config = $this->getServiceManager()->get('config');
+        
+        if($config['zf2resqueue']['emailOnShutDown'] === true)
+        {
+            $emailSettings = $config['zf2resqueue']['emailNotification'];
+            
+            // Initialize parameters
+            $htmlBody = 'The worker queue has stopped.';
+            $textBody = 'The worker queue has stopped.';
+
+            $subject = 'Please restart the worker';
+            $to = $emailSettings['to'];
+            $toName = $emailSettings['toName'];
+            $from = $emailSettings['from'];
+            $fromName = $emailSettings['fromName'];
+
+            // Setup SMTP transport using LOGIN authentication
+            $transport = new SmtpTransport();
+            $smtpOptions = $config['smtp_transport']['smtp_options'];
+            $options = new SmtpOptions($smtpOptions);
+            $transport->setOptions($options);
+
+            $htmlPart = new MimePart($htmlBody);
+            $htmlPart->type = "text/html";
+
+            $textPart = new MimePart($textBody);
+            $textPart->type = "text/plain";
+
+            $body = new MimeMessage();
+            $body->setParts(array($textPart, $htmlPart));
+
+            $message = new Mail\Message();
+            $message->setBody($body);
+            $message->setFrom($from, $fromName);
+            $message->addTo($to, $toName);
+            $message->setSubject($subject);
+            $message->setEncoding("UTF-8");
+            $message->getHeaders()
+                    ->get('content-type')
+                    ->setType('multipart/alternative');
+
+            $transport->send($message);
+        }
+    }
 }
