@@ -32,25 +32,34 @@ class ResqueLog extends \Resque_Log
      */
     public function log($level, $message, array $context = array())
     {
-        if(!file_exists($this->filePath))
-        {
-            parent::log($level, $message, $context);
-            return;
-        }
-        
+
         if ($this->verbose)
         {
+            if (!file_exists($this->filePath))
+            {
+                parent::log($level, $message, $context);
+                return;
+            }
+
             file_put_contents($this->filePath,
                     '[' . $level . '] [' . strftime('%T %Y-%m-%d') . '] ' . $this->interpolate($message,
-                            $context) . PHP_EOL);
+                            $context) . PHP_EOL, FILE_APPEND);
 
             return;
         }
 
-        if (!($level === Psr\Log\LogLevel::INFO || $level === Psr\Log\LogLevel::DEBUG))
+        if (!($level === \Psr\Log\LogLevel::INFO || $level === \Psr\Log\LogLevel::DEBUG))
         {
+            if (!file_exists($this->filePath))
+            {
+                parent::log($level, $message, $context);
+                return;
+            }
+
             file_put_contents($this->filePath,
-                    '[' . $level . '] ' . $this->interpolate($message, $context) . PHP_EOL);
+                    '[' . $level . '] ' . $this->interpolate($message, $context) . PHP_EOL,
+                    FILE_APPEND);
         }
     }
+
 }

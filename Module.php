@@ -33,11 +33,7 @@ class Module
                 'Zf2Resque\Service\ResqueWorker' => function ($sm)
                 {
                     $QUEUE = getenv('QUEUE');
-                    if(empty($QUEUE)) {
-                        die("Set QUEUE env var containing the list of queues to work.\n");
-                    }
                     $queues = explode(',', $QUEUE);
-
                     return new \Zf2Resque\Service\ResqueWorker($queues, $sm);
                 }
             ),

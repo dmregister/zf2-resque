@@ -73,6 +73,7 @@ class ResqueWorker extends \Resque_Worker
             $job = ResqueJob::reserveBlocking($queues, $timeout);
             if ($job)
             {
+                $job->logger = $this->logger;
                 $this->logger->log(\Psr\Log\LogLevel::INFO,
                         'Found job on {queue}', array('queue' => $job->queue));
                 return $job;
@@ -87,6 +88,7 @@ class ResqueWorker extends \Resque_Worker
                 $job = ResqueJob::reserve($queue, $this->getServiceManager());
                 if ($job)
                 {
+                    $job->logger = $this->logger;
                     $this->logger->log(\Psr\Log\LogLevel::INFO,
                             'Found job on {queue}',
                             array('queue' => $job->queue));
@@ -134,7 +136,7 @@ class ResqueWorker extends \Resque_Worker
             $htmlBody = 'The worker queue has stopped.';
             $textBody = 'The worker queue has stopped.';
 
-            $subject = 'Please restart the worker';
+            $subject = 'Please restart the Queue:' . getenv('QUEUE');
             $to = $emailSettings['to'];
             $toName = $emailSettings['toName'];
             $from = $emailSettings['from'];

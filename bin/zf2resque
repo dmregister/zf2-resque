@@ -1,6 +1,11 @@
 #!/usr/bin/env php
 <?php
 
+$QUEUE = getenv('QUEUE');
+if(empty($QUEUE)) {
+    die("Set QUEUE env var containing the list of queues to work.\n");
+}
+
 use Zend\ServiceManager\ServiceManager;
 use Zend\Mvc\Application;
 
@@ -46,7 +51,22 @@ else if (!empty($VVERBOSE))
     $logLevel = true;
 }
 
-$logFile = __DIR__ . '/data/log/queue-system.log';
+if(strpos($QUEUE, ',') !== false)
+{
+    $QUEUE = str_replace(',','-',$QUEUE);
+}
+if(strpos($QUEUE, '*') !== false)
+{
+    $QUEUE = 'all';
+}
+
+$logFile = __DIR__ . '/../../../../data/log/queue-system-'.$QUEUE.'.log';
+
+if(!file_exists($logFile))
+{
+    $f = fopen($logFile, 'w+');
+    fclose($f);
+}
 $logger = new \Zf2Resque\Service\ResqueLog($logLevel, $logFile);
 
 $BLOCKING = getenv('BLOCKING') !== FALSE;
@@ -95,7 +115,6 @@ if ($count > 1)
 // Start a single worker
 else
 {
-
     $worker = $application
     		->getServiceManager()
             ->get('Zf2Resque\Service\ResqueWorker');
