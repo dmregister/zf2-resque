@@ -43,7 +43,7 @@ class CliController extends AbstractActionController
             $logLevel = true;
         }
 
-        $logger = new \Resque_Log($logLevel);
+        $logger = new \Zf2Resque\Service\ResqueLog($logLevel);
 
         $BLOCKING = getenv('BLOCKING') !== FALSE;
 
