@@ -11,53 +11,46 @@ namespace Zf2Resque\Service;
  */
 class ResqueLog extends \Resque_Log
 {
-	public $verbose;
 
-	public function __construct($verbose = false) {
-		$this->verbose = $verbose;
-	}
+    public $verbose;
+    public $filePath;
 
-	/**
-	 * Logs with an arbitrary level.
-	 *
-	 * @param mixed   $level    PSR-3 log level constant, or equivalent string
-	 * @param string  $message  Message to log, may contain a { placeholder }
-	 * @param array   $context  Variables to replace { placeholder }
-	 * @return null
-	 */
-	public function log($level, $message, array $context = array())
-	{
-		if ($this->verbose) {
-		      file_put_contents('/var/www/queue-log/error.log','[' . $level . '] [' . strftime('%T %Y-%m-%d') . '] ' . $this->interpolate($message, $context) . PHP_EOL);
-			
-			return;
-		}
+    public function __construct($verbose = false, $filePath = '')
+    {
+        $this->verbose = $verbose;
 
-		if (!($level === Psr\Log\LogLevel::INFO || $level === Psr\Log\LogLevel::DEBUG)) {
-			fwrite(
-				STDOUT,
-				'[' . $level . '] ' . $this->interpolate($message, $context) . PHP_EOL
-			);
-		}
-	}
+        $this->filePath = $filePath;
+    }
 
-	/**
-	 * Fill placeholders with the provided context
-	 * @author Jordi Boggiano j.boggiano@seld.be
-	 * 
-	 * @param  string  $message  Message to be logged
-	 * @param  array   $context  Array of variables to use in message
-	 * @return string
-	 */
-	public function interpolate($message, array $context = array())
-	{
-		// build a replacement array with braces around the context keys
-		$replace = array();
-		foreach ($context as $key => $val) {
-			$replace['{' . $key . '}'] = $val;
-		}
-	
-		// interpolate replacement values into the message and return
-		return strtr($message, $replace);
-	}
+    /**
+     * Logs with an arbitrary level.
+     *
+     * @param mixed   $level    PSR-3 log level constant, or equivalent string
+     * @param string  $message  Message to log, may contain a { placeholder }
+     * @param array   $context  Variables to replace { placeholder }
+     * @return null
+     */
+    public function log($level, $message, array $context = array())
+    {
+        if(!file_exists($this->filePath))
+        {
+            parent::log($level, $message, $context);
+            return;
+        }
+        
+        if ($this->verbose)
+        {
+            file_put_contents($this->filePath,
+                    '[' . $level . '] [' . strftime('%T %Y-%m-%d') . '] ' . $this->interpolate($message,
+                            $context) . PHP_EOL);
+
+            return;
+        }
+
+        if (!($level === Psr\Log\LogLevel::INFO || $level === Psr\Log\LogLevel::DEBUG))
+        {
+            file_put_contents($this->filePath,
+                    '[' . $level . '] ' . $this->interpolate($message, $context) . PHP_EOL);
+        }
+    }
 }

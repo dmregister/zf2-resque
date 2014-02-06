@@ -1,0 +1,114 @@
+#!/usr/bin/env php
+<?php
+
+use Zend\ServiceManager\ServiceManager;
+use Zend\Mvc\Application;
+
+
+ini_set('display_errors', true);
+chdir(dirname(dirname(dirname(dirname(__DIR__)))));
+
+while (!file_exists('config/application.config.php')) {
+
+    if ($previousDir === $dir) {
+        die('Unable to locate "config/application.config.php"');
+    }
+}
+
+if (!(@include_once __DIR__ . '/../vendor/autoload.php') && !(@include_once __DIR__ . '/../../../autoload.php')) {
+    throw new RuntimeException('Error: vendor/autoload.php could not be found. Did you run php composer.phar install?');
+}
+
+$application = Application::init(include 'config/application.config.php');
+
+$config = $application->getServiceManager()->get('config');
+        
+$REDIS_BACKEND = $config['zf2resque']['redisBackend'];
+$REDIS_BACKEND_DB = getenv('REDIS_BACKEND_DB');
+if (!empty($REDIS_BACKEND))
+{
+    if (empty($REDIS_BACKEND_DB))
+        \Resque::setBackend($REDIS_BACKEND);
+    else
+        \Resque::setBackend($REDIS_BACKEND, $REDIS_BACKEND_DB);
+}
+
+$logLevel = false;
+$LOGGING = getenv('LOGGING');
+$VERBOSE = getenv('VERBOSE');
+$VVERBOSE = getenv('VVERBOSE');
+if (!empty($LOGGING) || !empty($VERBOSE))
+{
+    $logLevel = true;
+}
+else if (!empty($VVERBOSE))
+{
+    $logLevel = true;
+}
+
+$logFile = __DIR__ . '/data/log/queue-system.log';
+$logger = new \Zf2Resque\Service\ResqueLog($logLevel, $logFile);
+
+$BLOCKING = getenv('BLOCKING') !== FALSE;
+
+$interval = 5;
+$INTERVAL = getenv('INTERVAL');
+if (!empty($INTERVAL))
+{
+    $interval = $INTERVAL;
+}
+
+$count = 1;
+$COUNT = getenv('COUNT');
+if (!empty($COUNT) && $COUNT > 1)
+{
+    $count = $COUNT;
+}
+
+if ($count > 1)
+{
+    for ($i = 0; $i < $count; ++$i)
+    {
+        $pid = Resque::fork();
+        if ($pid == -1)
+        {
+            $logger->log(Psr\Log\LogLevel::EMERGENCY,
+                    'Could not fork worker {count}',
+                    array('count' => $i));
+            die();
+        }
+        // Child, start the worker
+        else if (!$pid)
+        {
+            $worker = $application
+            		->getServiceManager()
+                    ->get('Zf2Resque\Service\ResqueWorker');
+            $worker->setLogger($logger);
+            $logger->log(Psr\Log\LogLevel::NOTICE,
+                    'Starting worker {worker}',
+                    array('worker' => $worker));
+            $worker->work($interval, $BLOCKING);
+            break;
+        }
+    }
+}
+// Start a single worker
+else
+{
+
+    $worker = $application
+    		->getServiceManager()
+            ->get('Zf2Resque\Service\ResqueWorker');
+    $worker->setLogger($logger);
+
+    $PIDFILE = getenv('PIDFILE');
+    if ($PIDFILE)
+    {
+        file_put_contents($PIDFILE, getmypid()) or
+                die('Could not write PID information to ' . $PIDFILE);
+    }
+
+    $logger->log(\Psr\Log\LogLevel::NOTICE, 'Starting worker {worker}',
+            array('worker' => $worker));
+    $worker->work($interval, $BLOCKING);
+}
