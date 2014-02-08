@@ -9,7 +9,6 @@ use Zend\EventManager\EventManagerInterface;
 
 class ResqueWorker extends \Resque_Worker implements EventManagerAwareInterface
 {
-
     protected $serviceManager;
     
     protected $eventManager;
@@ -57,26 +56,6 @@ class ResqueWorker extends \Resque_Worker implements EventManagerAwareInterface
         return $this->eventManager;
     }
     
-
-    /**
-     * Given a worker ID, find it and return an instantiated worker class for it.
-     *
-     * @param string $workerId The ID of the worker.
-     * @return Resque_Worker Instance of the worker. False if the worker does not exist.
-     */
-    public static function find($workerId)
-    {
-        if (!self::exists($workerId) || false === strpos($workerId, ":"))
-        {
-            return false;
-        }
-
-        list($hostname, $pid, $queues) = explode(':', $workerId, 3);
-        $queues = explode(',', $queues);
-        $worker = new self($queues, self::getServiceManager());
-        $worker->setId($workerId);
-        return $worker;
-    }
 
     /**
      * @param  bool            $blocking

@@ -59,6 +59,8 @@ class ResqueLog extends \Resque_Log
             file_put_contents($this->filePath,
                     '[' . $level . '] ' . $this->interpolate($message, $context) . PHP_EOL,
                     FILE_APPEND);
+            
+            return;
         }
     }
 

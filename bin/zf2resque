@@ -92,7 +92,7 @@ if ($count > 1)
         $pid = Resque::fork();
         if ($pid == -1)
         {
-            $logger->log(Psr\Log\LogLevel::EMERGENCY,
+            $logger->log(\Psr\Log\LogLevel::EMERGENCY,
                     'Could not fork worker {count}',
                     array('count' => $i));
             die();
@@ -104,7 +104,7 @@ if ($count > 1)
             		->getServiceManager()
                     ->get('Zf2Resque\Service\ResqueWorker');
             $worker->setLogger($logger);
-            $logger->log(Psr\Log\LogLevel::NOTICE,
+            $logger->log(\Psr\Log\LogLevel::NOTICE,
                     'Starting worker {worker}',
                     array('worker' => $worker));
             $worker->work($interval, $BLOCKING);
