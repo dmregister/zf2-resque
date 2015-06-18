@@ -2,6 +2,7 @@
 
 namespace Zf2Resque\Service;
 
+use Resque_Job;
 use Zend\ServiceManager\ServiceManager;
 use Zf2Resque\Service\ResqueJob;
 use Zend\EventManager\EventManagerAwareInterface;
@@ -10,7 +11,7 @@ use Zend\EventManager\EventManagerInterface;
 class ResqueWorker extends \Resque_Worker implements EventManagerAwareInterface
 {
     protected $serviceManager;
-    
+
     protected $eventManager;
 
     public function __construct($queues, $serviceManager = null)
@@ -32,8 +33,8 @@ class ResqueWorker extends \Resque_Worker implements EventManagerAwareInterface
     {
         return $this->serviceManager;
     }
-    
-    
+
+
     /**
      * @param  EventManagerInterface $eventManager
      * @return void
@@ -55,7 +56,7 @@ class ResqueWorker extends \Resque_Worker implements EventManagerAwareInterface
 
         return $this->eventManager;
     }
-    
+
 
     /**
      * @param  bool            $blocking
@@ -107,7 +108,7 @@ class ResqueWorker extends \Resque_Worker implements EventManagerAwareInterface
      *
      * @param object $job Resque_Job instance containing the job we're working on.
      */
-    public function workingOn(ResqueJob $job)
+    public function workingOn(Resque_Job $job)
     {
         $job->worker = $this;
         $this->currentJob = $job;
@@ -127,8 +128,8 @@ class ResqueWorker extends \Resque_Worker implements EventManagerAwareInterface
     public function shutdown()
     {
         parent::shutdown();
-        
-        
+
+
         $this->getEventManager()->trigger('Zf2Resque.shutdown', null, array());
 
     }

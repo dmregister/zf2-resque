@@ -41,7 +41,7 @@ class ResqueJob extends \Resque_Job
      * @param string $queue The name of the queue to check for a job in.
      * @return null|object Null when there aren't any waiting jobs, instance of Resque_Job when a job was found.
      */
-    public static function reserve($queue, $sm)
+    public static function reserve($queue, $sm = null)
     {
         $payload = \Resque::pop($queue);
         if (!is_array($payload))
