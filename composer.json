@@ -14,7 +14,7 @@
     "license": "BSD-3-Clause",
     "require": {
         "php": ">=5.3.3",
-        "chrisboulton/php-resque": "dev-master"
+        "chrisboulton/php-resque": "@stable"
     },
     "autoload": {
         "psr-0": {
