@@ -24,10 +24,16 @@ if (!(@include_once __DIR__ . '/../vendor/autoload.php') && !(@include_once __DI
     throw new RuntimeException('Error: vendor/autoload.php could not be found. Did you run php composer.phar install?');
 }
 
-$application = Application::init(include 'config/application.config.php');
+$config = new \Zend\Config\Config(include 'config/application.config.php');
+
+if (file_exists('config/application.config.local.php')) {
+    $config->merge(new \Zend\Config\Config(include 'config/application.config.local.php'));
+}
+
+$application = Application::init($config->toArray());
 
 $config = $application->getServiceManager()->get('config');
-        
+
 $REDIS_BACKEND = $config['zf2resque']['redisBackend'];
 $REDIS_BACKEND_DB = getenv('REDIS_BACKEND_DB');
 if (!empty($REDIS_BACKEND))
